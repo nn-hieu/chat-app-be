@@ -1,5 +1,6 @@
 package com.hieunn.chatappbe.dtos.responses;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -18,7 +19,9 @@ public class UserDTO {
     String lastName;
     String fullName;
     String avatar;
-    boolean online;
+    @JsonProperty("isOnline")
+    boolean isOnline;
     LocalDateTime lastSeen;
     LocalDateTime createdAt;
+    LocalDateTime updatedAt;
 }

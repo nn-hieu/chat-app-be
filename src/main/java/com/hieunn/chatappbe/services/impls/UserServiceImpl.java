@@ -2,6 +2,7 @@ package com.hieunn.chatappbe.services.impls;
 
 import com.hieunn.chatappbe.dtos.responses.UserDTO;
 import com.hieunn.chatappbe.entities.User;
+import com.hieunn.chatappbe.mappers.UserMapper;
 import com.hieunn.chatappbe.repositories.UserRepository;
 import com.hieunn.chatappbe.services.UserService;
 import lombok.AccessLevel;
@@ -19,26 +20,27 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     UserRepository userRepository;
+    UserMapper userMapper;
 
     @Override
     public UserDTO getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return convertToDTO(user);
+        return userMapper.toUserDTO(user);
     }
 
     @Override
     public UserDTO getUserByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return convertToDTO(user);
+        return userMapper.toUserDTO(user);
     }
 
     @Override
     public List<UserDTO> searchUsers(String query) {
         List<User> users = userRepository.findByUsernameContainingIgnoreCase(query);
         return users.stream()
-                .map(this::convertToDTO)
+                .map(userMapper::toUserDTO)
                 .collect(Collectors.toList());
     }
 
@@ -54,7 +56,7 @@ public class UserServiceImpl implements UserService {
         }
 
         User savedUser = userRepository.save(user);
-        return convertToDTO(savedUser);
+        return userMapper.toUserDTO(savedUser);
     }
 
     @Override
@@ -68,21 +70,6 @@ public class UserServiceImpl implements UserService {
         if (avatar != null) user.setAvatar(avatar);
 
         User savedUser = userRepository.save(user);
-        return convertToDTO(savedUser);
-    }
-
-    private UserDTO convertToDTO(User user) {
-        return UserDTO.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .fullName(user.getFullName())
-                .avatar(user.getAvatar())
-                .online(user.isOnline())
-                .lastSeen(user.getLastSeen())
-                .createdAt(user.getCreatedAt())
-                .build();
+        return userMapper.toUserDTO(savedUser);
     }
 }

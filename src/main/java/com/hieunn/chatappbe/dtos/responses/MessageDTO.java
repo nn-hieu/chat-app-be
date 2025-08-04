@@ -1,5 +1,6 @@
 package com.hieunn.chatappbe.dtos.responses;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hieunn.chatappbe.entities.enums.MessageType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -23,6 +24,7 @@ public class MessageDTO {
     String receiverAvatar;
     String content;
     MessageType type;
+    @JsonProperty("isRead")
     boolean isRead;
     LocalDateTime createdAt;
     LocalDateTime readAt;

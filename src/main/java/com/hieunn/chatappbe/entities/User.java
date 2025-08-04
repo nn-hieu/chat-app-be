@@ -42,7 +42,7 @@ public class User {
     String avatar;
 
     @Builder.Default
-    boolean online = false;
+    boolean isOnline = false;
 
     @CreatedDate
     private LocalDateTime createdAt;
