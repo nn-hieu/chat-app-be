@@ -57,10 +57,10 @@ public class JwtUtil {
     }
 
     public String extractUserId(String token) {
-        String userId = extractClaim(token, claims -> claims.get("userId", String.class));
-        if (userId != null) {
-            return userId;
-        }
+        return extractClaim(token, claims -> claims.get("userId", String.class));
+    }
+
+    public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
