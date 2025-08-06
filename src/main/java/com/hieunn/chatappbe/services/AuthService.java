@@ -1,5 +1,7 @@
 package com.hieunn.chatappbe.services;
 
+import com.hieunn.chatappbe.dtos.responses.LoginResponse;
+
 public interface AuthService {
-    String login(String username, String password);
+    LoginResponse login(String username, String password);
 }

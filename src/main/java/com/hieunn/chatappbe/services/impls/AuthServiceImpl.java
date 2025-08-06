@@ -1,5 +1,6 @@
 package com.hieunn.chatappbe.services.impls;
 
+import com.hieunn.chatappbe.dtos.responses.LoginResponse;
 import com.hieunn.chatappbe.dtos.responses.UserDTO;
 import com.hieunn.chatappbe.entities.User;
 import com.hieunn.chatappbe.mappers.UserMapper;
@@ -9,9 +10,9 @@ import com.hieunn.chatappbe.utils.JwtUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -22,14 +23,21 @@ public class AuthServiceImpl implements AuthService {
     UserMapper userMapper;
 
     @Override
-    public String login(String username, String password) {
+    public LoginResponse login(String username, String password) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(username));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong username or password"));
 
         if (!user.getPassword().equals(password)) {
-            throw new BadCredentialsException("Wrong password");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong username or password");
         }
 
-        return jwtUtil.generateToken(userMapper.toUserDTO(user));
+        UserDTO userDTO = userMapper.toUserDTO(user);
+
+        String token = jwtUtil.generateToken(userDTO);
+
+        return LoginResponse.builder()
+                .token(token)
+                .user(userDTO)
+                .build();
     }
 }

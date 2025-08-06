@@ -16,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -34,23 +32,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO findUserByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return userMapper.toUserDTO(user);
-    }
-
-    @Override
-    public List<UserDTO> searchUsers(String query) {
-        List<User> users = userRepository.findByUsernameContainingIgnoreCase(query);
-        return users.stream()
-                .map(userMapper::toUserDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     @Transactional
-    public UserDTO updateOnlineStatus(Long userId, boolean online) {
+    public void updateOnlineStatus(Long userId, boolean online) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -59,22 +42,7 @@ public class UserServiceImpl implements UserService {
             user.setLastSeen(LocalDateTime.now());
         }
 
-        User savedUser = userRepository.save(user);
-        return userMapper.toUserDTO(savedUser);
-    }
-
-    @Override
-    @Transactional
-    public UserDTO updateUserProfile(Long userId, String firstName, String lastName, String avatar) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (firstName != null) user.setFirstName(firstName);
-        if (lastName != null) user.setLastName(lastName);
-        if (avatar != null) user.setAvatar(avatar);
-
-        User savedUser = userRepository.save(user);
-        return userMapper.toUserDTO(savedUser);
+        userRepository.save(user);
     }
 
     @Override

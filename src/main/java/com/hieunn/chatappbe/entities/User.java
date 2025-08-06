@@ -66,7 +66,15 @@ public class User implements UserDetails {
     private Set<Message> sentMessages = new HashSet<>();
 
     public String getFullName() {
-        return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+        if (firstName == null && lastName == null) {
+            return null;
+        } else if (firstName == null) {
+            return lastName;
+        } else if (lastName == null) {
+            return firstName;
+        } else {
+            return firstName + " " + lastName;
+        }
     }
 
     @Override

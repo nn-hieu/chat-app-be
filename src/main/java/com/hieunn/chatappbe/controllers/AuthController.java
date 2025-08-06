@@ -1,11 +1,13 @@
 package com.hieunn.chatappbe.controllers;
 
 import com.hieunn.chatappbe.dtos.requests.LoginRequest;
-import com.hieunn.chatappbe.dtos.responses.UserDTO;
+import com.hieunn.chatappbe.dtos.responses.ApiResponse;
+import com.hieunn.chatappbe.dtos.responses.LoginResponse;
 import com.hieunn.chatappbe.services.AuthService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,7 +22,13 @@ public class AuthController {
     AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<String> getUserById(@RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request.getUsername(), request.getPassword()));
+    public ResponseEntity<ApiResponse<LoginResponse>> getUserById(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK,
+                        authService.login(request.getUsername(), request.getPassword()
+                        )
+                )
+        );
     }
 }
