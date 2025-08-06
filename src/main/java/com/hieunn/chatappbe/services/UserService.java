@@ -1,13 +1,14 @@
 package com.hieunn.chatappbe.services;
 
 import com.hieunn.chatappbe.dtos.responses.UserDTO;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
 
-public interface UserService {
-    UserDTO getUserById(Long id);
+public interface UserService extends UserDetailsService {
+    UserDTO findUserById(Long id);
 
-    UserDTO getUserByUsername(String username);
+    UserDTO findUserByUsername(String username);
 
     List<UserDTO> searchUsers(String query);
 

@@ -20,7 +20,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         try {
-            UserDTO user = userService.getUserById(id);
+            UserDTO user = userService.findUserById(id);
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
@@ -30,7 +30,7 @@ public class UserController {
     @GetMapping("/username/{username}")
     public ResponseEntity<UserDTO> getUserByUsername(@PathVariable String username) {
         try {
-            UserDTO user = userService.getUserByUsername(username);
+            UserDTO user = userService.findUserByUsername(username);
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();

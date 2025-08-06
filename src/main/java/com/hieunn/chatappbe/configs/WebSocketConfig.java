@@ -1,6 +1,6 @@
 package com.hieunn.chatappbe.configs;
 
-import com.hieunn.chatappbe.interceptors.WebSocketAuthInterceptor;
+import com.hieunn.chatappbe.interceptors.WebSocketChannelInterceptor;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -16,7 +16,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @FieldDefaults(level = AccessLevel.PACKAGE, makeFinal = true)
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    WebSocketAuthInterceptor webSocketAuthInterceptor;
+    WebSocketChannelInterceptor webSocketChannelInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -34,6 +34,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(webSocketAuthInterceptor);
+        registration.interceptors(webSocketChannelInterceptor);
     }
 }
