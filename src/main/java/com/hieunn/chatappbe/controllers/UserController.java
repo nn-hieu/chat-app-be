@@ -21,7 +21,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         try {
-            UserDTO user = userService.findUserById(id);
+            UserDTO user = userService.findById(id);
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();

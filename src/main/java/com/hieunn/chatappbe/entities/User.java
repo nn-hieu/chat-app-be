@@ -49,9 +49,11 @@ public class User implements UserDetails {
     boolean isOnline = false;
 
     @CreatedDate
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     private LocalDateTime lastSeen;

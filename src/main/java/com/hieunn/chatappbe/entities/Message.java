@@ -41,6 +41,7 @@ public class Message {
     boolean isRead = false;
 
     @CreatedDate
+    @Setter(AccessLevel.NONE)
     LocalDateTime createdAt;
 
     LocalDateTime readAt;
