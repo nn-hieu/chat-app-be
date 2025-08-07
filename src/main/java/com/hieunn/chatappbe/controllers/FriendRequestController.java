@@ -10,10 +10,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/friend-requests")
@@ -33,5 +30,18 @@ public class FriendRequestController {
         );
     }
 
+    @PatchMapping
+    public ResponseEntity<ApiResponse<FriendRequestDTO>> address(
+            @RequestParam Long id,
+            @RequestParam(required = false) Boolean isAccepted,
+            @AuthenticationPrincipal User user
+    ) {
+        FriendRequestDTO requestDTO = friendRequestService.address(id, isAccepted, user.getId());
 
+        return ResponseEntity.ok(ApiResponse.success(
+                        HttpStatus.OK,
+                        requestDTO
+                )
+        );
+    }
 }
