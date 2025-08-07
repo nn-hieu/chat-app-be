@@ -35,6 +35,7 @@ public class FriendRequest {
     FriendRequestStatus status = FriendRequestStatus.PENDING;
 
     @CreatedDate
+    @Setter(AccessLevel.NONE)
     LocalDateTime createdAt;
 
     LocalDateTime respondedAt;
