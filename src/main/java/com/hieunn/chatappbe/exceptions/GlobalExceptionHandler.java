@@ -12,7 +12,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiResponse<Void>> handleResponseStatusException(ResponseStatusException ex) {
         return ResponseEntity
-                .status(HttpStatus.OK)
+                .status(ex.getStatusCode())
                 .body(ApiResponse.error((HttpStatus) ex.getStatusCode(), ex.getReason()));
     }
 }
