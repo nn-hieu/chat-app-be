@@ -17,11 +17,9 @@ public class MessageDTO {
     Long senderId;
     String senderUsername;
     String senderFullName;
-    String senderAvatar;
     Long receiverId;
     String receiverUsername;
     String receiverFullName;
-    String receiverAvatar;
     String content;
     MessageType type;
     @JsonProperty("isRead")

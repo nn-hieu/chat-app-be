@@ -10,9 +10,5 @@ public interface MessageService {
 
     List<MessageDTO> getConversation(Long user1Id, Long user2Id, int page, int size);
 
-    void markAsRead(Long messageId, Long userId);
-
     void markConversationAsRead(Long currentUserId, Long otherUserId);
-
-    long getUnreadMessageCount(Long userId);
 }

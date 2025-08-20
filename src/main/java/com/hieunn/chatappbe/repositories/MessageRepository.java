@@ -11,15 +11,15 @@ import java.util.List;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
-    List<Message> findBySenderAndReceiverOrReceiverAndSenderOrderByCreatedAtAsc(
-            User sender1, User receiver1, User sender2, User receiver2);
-
-    List<Message> findBySenderAndReceiverOrderByCreatedAtDesc(User sender, User receiver);
-
-    List<Message> findByReceiverAndIsReadFalse(User receiver);
-
-    long countByReceiverAndIsReadFalse(User receiver);
-
     Page<Message> findBySenderAndReceiverOrReceiverAndSenderOrderByCreatedAtDesc(
             User sender1, User receiver1, User sender2, User receiver2, Pageable pageable);
+
+    List<Message> findBySender_IdAndReceiver_IdAndIsReadFalse(Long senderId, Long receiverId);
+
+    Message findFirstBySender_IdAndReceiver_IdOrSender_IdAndReceiver_IdOrderByCreatedAtDesc(
+            Long senderId1, Long receiverId1,
+            Long senderId2, Long receiverId2
+    );
+
+    long countBySender_IdAndReceiver_IdAndIsReadFalse(Long senderId, Long receiverId);
 }

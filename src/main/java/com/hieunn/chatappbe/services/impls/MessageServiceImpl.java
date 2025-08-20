@@ -14,8 +14,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -52,6 +54,9 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public List<MessageDTO> getConversation(Long user1Id, Long user2Id, int page, int size) {
+        if (user1Id.equals(user2Id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Two user Ids are the same");
+        }
         User user1 = userRepository.findById(user1Id)
                 .orElseThrow(() -> new RuntimeException("User 1 not found"));
         User user2 = userRepository.findById(user2Id)
@@ -60,7 +65,7 @@ public class MessageServiceImpl implements MessageService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Message> messages = messageRepository
                 .findBySenderAndReceiverOrReceiverAndSenderOrderByCreatedAtDesc(
-                        user1, user2, user2, user1, pageable);
+                        user1, user2, user1, user2, pageable);
 
         List<MessageDTO> messageDTOs = messages.getContent().stream()
                 .map(this::convertToDTO)
@@ -72,44 +77,22 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     @Transactional
-    public void markAsRead(Long messageId, Long userId) {
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new RuntimeException("Message not found"));
+    public void markConversationAsRead(Long currentUserId, Long otherUserId) {
+        List<Message> unreadMessages = messageRepository.findBySender_IdAndReceiver_IdAndIsReadFalse(
+                otherUserId,
+                currentUserId
+        );
 
-        if (!message.getReceiver().getId().equals(userId)) {
-            throw new RuntimeException("Not authorized to mark this message as read");
+        if (unreadMessages.isEmpty()) {
+            return;
         }
 
-        message.setRead(true);
-        message.setReadAt(LocalDateTime.now());
-        messageRepository.save(message);
-    }
-
-    @Override
-    @Transactional
-    public void markConversationAsRead(Long currentUserId, Long otherUserId) {
-        User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new RuntimeException("Current user not found"));
-        User otherUser = userRepository.findById(otherUserId)
-                .orElseThrow(() -> new RuntimeException("Other user not found"));
-
-        List<Message> unreadMessages = messageRepository.findByReceiverAndIsReadFalse(currentUser);
-        unreadMessages.stream()
-                .filter(msg -> msg.getSender().getId().equals(otherUserId))
-                .forEach(msg -> {
-                    msg.setRead(true);
-                    msg.setReadAt(LocalDateTime.now());
-                });
+        unreadMessages.forEach(msg -> {
+            msg.setRead(true);
+            msg.setReadAt(LocalDateTime.now());
+        });
 
         messageRepository.saveAll(unreadMessages);
-    }
-
-    @Override
-    public long getUnreadMessageCount(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return messageRepository.countByReceiverAndIsReadFalse(user);
     }
 
     private MessageDTO convertToDTO(Message message) {
@@ -118,11 +101,9 @@ public class MessageServiceImpl implements MessageService {
                 .senderId(message.getSender().getId())
                 .senderUsername(message.getSender().getUsername())
                 .senderFullName(message.getSender().getFullName())
-                .senderAvatar(message.getSender().getAvatar())
                 .receiverId(message.getReceiver().getId())
                 .receiverUsername(message.getReceiver().getUsername())
                 .receiverFullName(message.getReceiver().getFullName())
-                .receiverAvatar(message.getReceiver().getAvatar())
                 .content(message.getContent())
                 .type(message.getType())
                 .isRead(message.isRead())
