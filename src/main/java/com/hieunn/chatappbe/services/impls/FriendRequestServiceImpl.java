@@ -105,4 +105,24 @@ public class FriendRequestServiceImpl implements FriendRequestService {
 
         return requestDTO;
     }
+
+    @Override
+    public List<FriendRequestDTO> findSentRequests(Long userId) {
+        List<FriendRequest> sentRequests = friendRequestRepository.findBySender_Id(userId);
+
+        return sentRequests
+                .stream()
+                .map(friendRequestMapper::toFriendRequestDTO)
+                .toList();
+    }
+
+    @Override
+    public List<FriendRequestDTO> findReceivedRequests(Long userId) {
+        List<FriendRequest> receivedRequests = friendRequestRepository.findByReceiver_Id(userId);
+
+        return receivedRequests
+                .stream()
+                .map(friendRequestMapper::toFriendRequestDTO)
+                .toList();
+    }
 }

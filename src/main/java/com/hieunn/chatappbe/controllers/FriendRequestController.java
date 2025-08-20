@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/friend-requests")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -38,10 +40,20 @@ public class FriendRequestController {
     ) {
         FriendRequestDTO requestDTO = friendRequestService.address(id, isAccepted, user.getId());
 
-        return ResponseEntity.ok(ApiResponse.success(
-                        HttpStatus.OK,
-                        requestDTO
-                )
-        );
+        return ResponseEntity.ok(ApiResponse.success(requestDTO));
+    }
+
+    @GetMapping("/sent")
+    public ResponseEntity<ApiResponse<List<FriendRequestDTO>>> findSentRequests(@AuthenticationPrincipal User user) {
+        List<FriendRequestDTO> sentRequests = friendRequestService.findSentRequests(user.getId());
+
+        return ResponseEntity.ok(ApiResponse.success(sentRequests));
+    }
+
+    @GetMapping("/received")
+    public ResponseEntity<ApiResponse<List<FriendRequestDTO>>> findReceivedRequests(@AuthenticationPrincipal User user) {
+        List<FriendRequestDTO> sentRequests = friendRequestService.findReceivedRequests(user.getId());
+
+        return ResponseEntity.ok(ApiResponse.success(sentRequests));
     }
 }

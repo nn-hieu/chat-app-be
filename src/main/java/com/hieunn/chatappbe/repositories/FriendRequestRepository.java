@@ -12,4 +12,13 @@ import java.util.Optional;
 @Repository
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, Long> {
     List<FriendRequest> findBySender_IdAndReceiver_Id(Long senderId, Long receiverId);
+
+    List<FriendRequest> findByStatusAndSenderIdOrStatusAndReceiverId(
+            FriendRequestStatus status1, Long senderId,
+            FriendRequestStatus status2, Long receiverId
+    );
+
+    List<FriendRequest> findBySender_Id(Long senderId);
+
+    List<FriendRequest> findByReceiver_Id(Long receiverId);
 }
