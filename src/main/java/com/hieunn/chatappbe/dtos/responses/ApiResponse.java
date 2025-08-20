@@ -32,6 +32,10 @@ public class ApiResponse<T> {
         return success(status, data, null);
     }
 
+    public static <T> ApiResponse<T> success(T data) {
+        return success(HttpStatus.OK, data, null);
+    }
+
     public static <T> ApiResponse<T> error(HttpStatus status, String message) {
         return ApiResponse.<T>builder()
                 .status(status.value())

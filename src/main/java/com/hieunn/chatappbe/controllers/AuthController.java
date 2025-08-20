@@ -7,7 +7,6 @@ import com.hieunn.chatappbe.services.AuthService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,11 +23,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(
-                ApiResponse.success(
-                        HttpStatus.OK,
-                        authService.login(request.getUsername(), request.getPassword()
-                        )
-                )
+                ApiResponse.success(authService.login(request.getUsername(), request.getPassword()))
         );
     }
 }
