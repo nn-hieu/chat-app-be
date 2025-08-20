@@ -8,6 +8,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
@@ -21,24 +22,18 @@ public class WebSocketEventListener {
     SimpMessagingTemplate messagingTemplate;
 
     @EventListener
-    public void handleWebSocketSubscribeListener(SessionSubscribeEvent event) {
+    public void handleWebSocketConnectListener(SessionConnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
 
-        String destination = headerAccessor.getDestination();
+        String userId = (String) headerAccessor.getSessionAttributes().get("userId");
 
-        if ("/topic/user.online".equals(destination)) {
-            String userId = (String) headerAccessor.getSessionAttributes().get("userId");
-            String username = (String) headerAccessor.getSessionAttributes().get("username");
+        if (userId != null) {
+            userService.updateOnlineStatus(Long.parseLong(userId), true);
 
-            if (userId != null) {
-                userService.updateOnlineStatus(Long.parseLong(userId), true);
-
-                messagingTemplate.convertAndSend("/topic/user.online", Map.of(
-                        "userId", userId,
-                        "username", username,
-                        "online", true
-                ));
-            }
+            messagingTemplate.convertAndSend("/topic/user.onlineStatus", Map.of(
+                    "userId", userId,
+                    "isOnline", true
+            ));
         }
     }
 
@@ -47,15 +42,13 @@ public class WebSocketEventListener {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
 
         String userId = (String) headerAccessor.getSessionAttributes().get("userId");
-        String username = (String) headerAccessor.getSessionAttributes().get("username");
 
         if (userId != null) {
             userService.updateOnlineStatus(Long.parseLong(userId), false);
 
-            messagingTemplate.convertAndSend("/topic/user.offline", Map.of(
+            messagingTemplate.convertAndSend("/topic/user.onlineStatus", Map.of(
                     "userId", userId,
-                    "username", username,
-                    "online", false
+                    "isOnline", false
             ));
         }
     }
