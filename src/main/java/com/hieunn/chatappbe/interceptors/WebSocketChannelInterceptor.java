@@ -34,10 +34,8 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
                 token = token.substring(7);
                 if (jwtUtil.validateToken(token)) {
                     String userId = jwtUtil.extractUserId(token);
-                    String username = jwtUtil.extractUsername(token);
 
                     accessor.getSessionAttributes().put("userId", userId);
-                    accessor.getSessionAttributes().put("username", username);
 
                     Authentication authentication = new UsernamePasswordAuthenticationToken(userId, token, null);
                     accessor.setUser(authentication);
