@@ -50,22 +50,13 @@ public class User implements UserDetails {
 
     @CreatedDate
     @Setter(AccessLevel.NONE)
-    private LocalDateTime createdAt;
+    LocalDateTime createdAt;
 
     @LastModifiedDate
     @Setter(AccessLevel.NONE)
-    private LocalDateTime updatedAt;
+    LocalDateTime updatedAt;
 
-    private LocalDateTime lastSeen;
-
-    @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
-    private Set<FriendRequest> sentFriendRequests = new HashSet<>();
-
-    @OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY)
-    private Set<FriendRequest> receivedFriendRequests = new HashSet<>();
-
-    @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
-    private Set<Message> sentMessages = new HashSet<>();
+    LocalDateTime lastSeen;
 
     public String getFullName() {
         if (firstName == null && lastName == null) {
