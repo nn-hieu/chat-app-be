@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -58,7 +59,7 @@ public class FriendRequestServiceImpl implements FriendRequestService {
 
         messagingTemplate.convertAndSendToUser(
                 requestDTO.getReceiverId().toString(),
-                "/queue/friend-request",
+                "/queue/friend-requests",
                 requestDTO
         );
 
@@ -99,7 +100,7 @@ public class FriendRequestServiceImpl implements FriendRequestService {
 
         messagingTemplate.convertAndSendToUser(
                 expectedUserId.toString(),
-                "/queue/friend-request",
+                "/queue/friend-requests",
                 requestDTO
         );
 
@@ -113,6 +114,10 @@ public class FriendRequestServiceImpl implements FriendRequestService {
         return sentRequests
                 .stream()
                 .map(friendRequestMapper::toFriendRequestDTO)
+                .sorted(Comparator
+                        .comparing((FriendRequestDTO dto) -> dto.getStatus() != FriendRequestStatus.PENDING)
+                        .thenComparing(FriendRequestDTO::getCreatedAt, Comparator.reverseOrder())
+                )
                 .toList();
     }
 
@@ -123,6 +128,10 @@ public class FriendRequestServiceImpl implements FriendRequestService {
         return receivedRequests
                 .stream()
                 .map(friendRequestMapper::toFriendRequestDTO)
+                .sorted(Comparator
+                        .comparing((FriendRequestDTO dto) -> dto.getStatus() != FriendRequestStatus.PENDING)
+                        .thenComparing(FriendRequestDTO::getCreatedAt, Comparator.reverseOrder())
+                )
                 .toList();
     }
 }
