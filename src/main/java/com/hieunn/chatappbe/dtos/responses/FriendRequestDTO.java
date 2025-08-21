@@ -15,8 +15,10 @@ public class FriendRequestDTO {
     Long id;
     Long senderId;
     String senderUsername;
+    String senderAvatar;
     Long receiverId;
     String receiverUsername;
+    String receiverAvatar;
     FriendRequestStatus status;
     LocalDateTime createdAt;
     LocalDateTime respondedAt;

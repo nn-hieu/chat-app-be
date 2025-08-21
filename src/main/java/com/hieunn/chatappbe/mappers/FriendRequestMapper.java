@@ -11,5 +11,7 @@ public interface FriendRequestMapper {
     @Mapping(source = "sender.username", target = "senderUsername")
     @Mapping(source = "receiver.id", target = "receiverId")
     @Mapping(source = "receiver.username", target = "receiverUsername")
+    @Mapping(source = "sender.avatar", target = "senderAvatar")
+    @Mapping(source = "receiver.avatar", target = "receiverAvatar")
     FriendRequestDTO toFriendRequestDTO(FriendRequest friendRequest);
 }
