@@ -15,5 +15,5 @@ public class FriendDTO {
     String lastMessage;
     Long lastSenderId;
     LocalDateTime lastMessageTime;
-    long unreadCount;
+    Long unreadCount;
 }
