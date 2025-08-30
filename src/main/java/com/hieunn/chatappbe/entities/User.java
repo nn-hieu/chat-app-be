@@ -11,9 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -31,10 +29,10 @@ public class User implements UserDetails {
     @Column(unique = true, nullable = false, length = 50)
     String username;
 
-    @Column(unique = true)
+    @Column(unique = true, length = 100)
     String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     String password;
 
     @Column(length = 20)
@@ -43,10 +41,14 @@ public class User implements UserDetails {
     @Column(length = 20)
     String lastName;
 
-    String avatar;
+    @Column(length = 500)
+    String avatarUrl;
+
+    @Column(length = 50)
+    String avatarPublicId;
 
     @Builder.Default
-    boolean isOnline = false;
+    Boolean isOnline = false;
 
     @CreatedDate
     @Setter(AccessLevel.NONE)
@@ -66,7 +68,7 @@ public class User implements UserDetails {
         } else if (lastName == null) {
             return firstName;
         } else {
-            return firstName + " " + lastName;
+            return lastName + " " + firstName;
         }
     }
 

@@ -18,9 +18,10 @@ public class UserDTO {
     String firstName;
     String lastName;
     String fullName;
-    String avatar;
+    String avatarUrl;
+    String avatarPublicId;
     @JsonProperty("isOnline")
-    boolean isOnline;
+    Boolean isOnline;
     LocalDateTime lastSeen;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;

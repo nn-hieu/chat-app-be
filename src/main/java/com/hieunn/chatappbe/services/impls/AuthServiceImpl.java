@@ -32,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         UserDTO userDTO = userMapper.toUserDTO(user);
+        userDTO.setIsOnline(true);
 
         String token = jwtUtil.generateToken(userDTO);
 
