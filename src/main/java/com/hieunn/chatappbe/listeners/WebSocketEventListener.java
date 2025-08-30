@@ -27,14 +27,12 @@ public class WebSocketEventListener {
 
         String userId = (String) headerAccessor.getSessionAttributes().get("userId");
 
-        if (userId != null) {
-            userService.updateOnlineStatus(Long.parseLong(userId), true);
+        userService.updateOnlineStatus(Long.parseLong(userId), true);
 
-            messagingTemplate.convertAndSend("/topic/user.onlineStatus", Map.of(
-                    "userId", userId,
-                    "isOnline", true
-            ));
-        }
+        messagingTemplate.convertAndSend("/topic/user.onlineStatus", Map.of(
+                "userId", Long.parseLong(userId),
+                "isOnline", true
+        ));
     }
 
     @EventListener
@@ -43,13 +41,11 @@ public class WebSocketEventListener {
 
         String userId = (String) headerAccessor.getSessionAttributes().get("userId");
 
-        if (userId != null) {
-            userService.updateOnlineStatus(Long.parseLong(userId), false);
+        userService.updateOnlineStatus(Long.parseLong(userId), false);
 
-            messagingTemplate.convertAndSend("/topic/user.onlineStatus", Map.of(
-                    "userId", userId,
-                    "isOnline", false
-            ));
-        }
+        messagingTemplate.convertAndSend("/topic/user.onlineStatus", Map.of(
+                "userId", Long.parseLong(userId),
+                "isOnline", false
+        ));
     }
 }
