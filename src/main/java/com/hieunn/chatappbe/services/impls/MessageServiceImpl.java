@@ -44,7 +44,6 @@ public class MessageServiceImpl implements MessageService {
                 .sender(sender)
                 .receiver(receiver)
                 .content(request.getContent())
-                .type(request.getType())
                 .isRead(false)
                 .build();
 
@@ -88,7 +87,7 @@ public class MessageServiceImpl implements MessageService {
         }
 
         unreadMessages.forEach(msg -> {
-            msg.setRead(true);
+            msg.setIsRead(true);
             msg.setReadAt(LocalDateTime.now());
         });
 
@@ -105,8 +104,7 @@ public class MessageServiceImpl implements MessageService {
                 .receiverUsername(message.getReceiver().getUsername())
                 .receiverFullName(message.getReceiver().getFullName())
                 .content(message.getContent())
-                .type(message.getType())
-                .isRead(message.isRead())
+                .isRead(message.getIsRead())
                 .createdAt(message.getCreatedAt())
                 .readAt(message.getReadAt())
                 .build();

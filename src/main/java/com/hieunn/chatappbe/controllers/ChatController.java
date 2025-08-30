@@ -1,7 +1,9 @@
 package com.hieunn.chatappbe.controllers;
 
 import com.hieunn.chatappbe.dtos.requests.SendMessageRequest;
+import com.hieunn.chatappbe.dtos.requests.TypingRequest;
 import com.hieunn.chatappbe.dtos.responses.MessageDTO;
+import com.hieunn.chatappbe.dtos.responses.TypingDTO;
 import com.hieunn.chatappbe.services.MessageService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -22,31 +24,37 @@ public class ChatController {
 
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload SendMessageRequest request, Principal principal) {
-        try {
-            Long senderId = Long.parseLong(principal.getName());
+        Long senderId = Long.parseLong(principal.getName());
 
-            MessageDTO message = messageService.sendMessage(senderId, request);
+        MessageDTO message = messageService.sendMessage(senderId, request);
 
-            // Send message to receiver
-            messagingTemplate.convertAndSendToUser(
-                    message.getReceiverId().toString(),
-                    "/queue/messages",
-                    message
-            );
+        // Send message to receiver
+        messagingTemplate.convertAndSendToUser(
+                message.getReceiverId().toString(),
+                "/queue/messages",
+                message
+        );
 
-            // Send message to sender
-            messagingTemplate.convertAndSendToUser(
-                    message.getSenderId().toString(),
-                    "/queue/messages",
-                    message
-            );
+        // Send message to sender
+        messagingTemplate.convertAndSendToUser(
+                message.getSenderId().toString(),
+                "/queue/messages",
+                message
+        );
+    }
 
-        } catch (Exception e) {
-            messagingTemplate.convertAndSendToUser(
-                    principal.getName(),
-                    "/queue/errors",
-                    "Failed to send message: " + e.getMessage()
-            );
-        }
+    @MessageMapping("/chat.typing")
+    public void typing(@Payload TypingRequest request, Principal principal) {
+        TypingDTO typingDTO = TypingDTO.builder()
+                .isTyping(request.isTyping())
+                .receiverId(request.getReceiverId())
+                .senderId(Long.parseLong(principal.getName()))
+                .build();
+
+        messagingTemplate.convertAndSendToUser(
+                request.getReceiverId().toString(),
+                "/queue/typing",
+                typingDTO
+        );
     }
 }
