@@ -3,9 +3,9 @@ spring:
     name: chat-app-be
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/chat_app
-    username: postgres
-    password: 12345
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -19,5 +19,10 @@ spring:
 
 security:
   jwt:
-    secret-key: 
-    expiration: 86400000
+    secret-key: ${JWT_KEY}
+    expiration: ${JWT_EXPIRATION}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_NAME}
+  api-key: ${CLOUDINARY_KEY}
+  api-secret: ${CLOUDINARY_SECRET}
