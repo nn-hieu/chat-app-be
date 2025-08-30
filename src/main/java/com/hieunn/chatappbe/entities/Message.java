@@ -1,6 +1,5 @@
 package com.hieunn.chatappbe.entities;
 
-import com.hieunn.chatappbe.entities.enums.MessageType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -8,6 +7,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "messages")
@@ -33,16 +34,15 @@ public class Message {
     @Column(nullable = false, columnDefinition = "TEXT")
     String content;
 
-    @Enumerated(EnumType.STRING)
     @Builder.Default
-    MessageType type = MessageType.TEXT;
-
-    @Builder.Default
-    boolean isRead = false;
+    Boolean isRead = false;
 
     @CreatedDate
     @Setter(AccessLevel.NONE)
     LocalDateTime createdAt;
 
     LocalDateTime readAt;
+
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Attachment> attachments = new ArrayList<>();;
 }

@@ -1,6 +1,5 @@
 package com.hieunn.chatappbe.dtos.requests;
 
-import com.hieunn.chatappbe.entities.enums.MessageType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -19,6 +18,4 @@ public class SendMessageRequest {
 
     @NotBlank(message = "Content is required")
     String content;
-
-    MessageType type = MessageType.TEXT;
 }
