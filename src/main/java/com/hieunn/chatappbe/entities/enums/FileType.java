@@ -1,6 +1,6 @@
 package com.hieunn.chatappbe.entities.enums;
 
-public enum AttachmentType {
+public enum FileType {
     IMAGE,
     VIDEO,
     FILE

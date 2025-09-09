@@ -1,6 +1,6 @@
 package com.hieunn.chatappbe.entities;
 
-import com.hieunn.chatappbe.entities.enums.AttachmentType;
+import com.hieunn.chatappbe.entities.enums.FileType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -30,7 +30,7 @@ public class Attachment {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    AttachmentType type;
+    FileType type;
 
     String originalFilename;
 
