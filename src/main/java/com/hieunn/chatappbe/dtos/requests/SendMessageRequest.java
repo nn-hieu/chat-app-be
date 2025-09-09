@@ -13,8 +13,8 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SendMessageRequest {
-    @NotNull(message = "Receiver ID is required")
-    Long receiverId;
+    @NotNull(message = "Conversation ID is required")
+    private Long conversationId;
 
     @NotBlank(message = "Content is required")
     String content;

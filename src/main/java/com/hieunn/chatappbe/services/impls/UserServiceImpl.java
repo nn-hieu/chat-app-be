@@ -19,6 +19,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -68,51 +70,53 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<FriendDTO> findFriends(Long userId) {
-        List<FriendRequest> acceptedRequests =
-                friendRequestRepository.findByStatusAndSenderIdOrStatusAndReceiverId(
-                        FriendRequestStatus.ACCEPTED, userId,
-                        FriendRequestStatus.ACCEPTED, userId
-                );
+    public List<UserDTO> findFriends(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + userId));
 
-        Set<User> uniqueFriends = acceptedRequests.stream()
-                .map(fr -> fr.getSender().getId().equals(userId)
-                        ? fr.getReceiver()
-                        : fr.getSender())
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        List<FriendRequest> acceptedRequests = friendRequestRepository
+                .findAcceptedFriendRequestsByUserId(userId);
 
-        List<FriendDTO> result = new ArrayList<>();
+        return acceptedRequests.stream()
+                .map(request -> {
+                    User friend = request.getSender().getId().equals(userId)
+                            ? request.getReceiver()
+                            : request.getSender();
+                    return userMapper.toUserDTO(friend);
+                })
+                .collect(Collectors.toList());
+    }
 
-        for (User friend : uniqueFriends) {
-            Message lastMsg = messageRepository
-                    .findFirstBySender_IdAndReceiver_IdOrSender_IdAndReceiver_IdOrderByCreatedAtDesc(
-                            userId, friend.getId(),
-                            friend.getId(), userId
-                    );
+    @Override
+    public Page<UserDTO> findFriends(Long userId, Pageable pageable) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + userId));
 
-            long unreadCount = messageRepository
-                    .countBySender_IdAndReceiver_IdAndIsReadFalse(friend.getId(), userId);
+        Page<FriendRequest> acceptedRequests = friendRequestRepository
+                .findAcceptedFriendRequestsByUserIdWithPagination(userId, pageable);
 
-            FriendDTO dto = new FriendDTO();
-            dto.setUser(userMapper.toUserDTO(friend));
+        return acceptedRequests.map(request -> {
+            User friend = request.getSender().getId().equals(userId)
+                    ? request.getReceiver()
+                    : request.getSender();
+            return userMapper.toUserDTO(friend);
+        });
+    }
 
-            if (lastMsg != null) {
-                dto.setLastMessage(lastMsg.getContent());
-                dto.setLastSenderId(lastMsg.getSender().getId());
-                dto.setLastMessageTime(lastMsg.getCreatedAt());
-            }
+    @Override
+    public long countFriends(Long userId) {
+        return friendRequestRepository.countAcceptedFriendRequestsByUserId(userId);
+    }
 
-            dto.setUnreadCount(unreadCount);
+    @Override
+    public List<UserDTO> findMutualFriends(Long userId1, Long userId2) {
+        List<UserDTO> friends1 = findFriends(userId1);
+        List<UserDTO> friends2 = findFriends(userId2);
 
-            result.add(dto);
-        }
-
-        result.sort(Comparator.comparing(
-                FriendDTO::getLastMessageTime,
-                Comparator.nullsLast(Comparator.reverseOrder()))
-        );
-
-        return result;
+        return friends1.stream()
+                .filter(friend1 -> friends2.stream()
+                        .anyMatch(friend2 -> friend1.getId().equals(friend2.getId())))
+                .collect(Collectors.toList());
     }
 
     @Override

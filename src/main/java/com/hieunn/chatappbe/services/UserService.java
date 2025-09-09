@@ -3,10 +3,11 @@ package com.hieunn.chatappbe.services;
 import com.hieunn.chatappbe.dtos.requests.UserUpdateRequest;
 import com.hieunn.chatappbe.dtos.responses.FriendDTO;
 import com.hieunn.chatappbe.dtos.responses.UserDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 public interface UserService extends UserDetailsService {
@@ -14,7 +15,13 @@ public interface UserService extends UserDetailsService {
 
     void updateOnlineStatus(Long userId, boolean online);
 
-    List<FriendDTO> findFriends(Long userId);
+    List<UserDTO> findFriends(Long userId);
+
+    Page<UserDTO> findFriends(Long userId, Pageable pageable);
+
+    long countFriends(Long userId);
+
+    List<UserDTO> findMutualFriends(Long userId1, Long userId2);
 
     List<UserDTO> search(String username, String email, String fullName);
 

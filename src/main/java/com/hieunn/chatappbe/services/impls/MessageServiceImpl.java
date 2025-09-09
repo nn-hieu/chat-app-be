@@ -1,12 +1,18 @@
 package com.hieunn.chatappbe.services.impls;
 
 import com.hieunn.chatappbe.dtos.requests.SendMessageRequest;
+import com.hieunn.chatappbe.dtos.requests.TypingRequest;
 import com.hieunn.chatappbe.dtos.responses.MessageDTO;
+import com.hieunn.chatappbe.dtos.responses.TypingDTO;
+import com.hieunn.chatappbe.entities.Conversation;
 import com.hieunn.chatappbe.entities.Message;
 import com.hieunn.chatappbe.entities.User;
+import com.hieunn.chatappbe.mappers.MessageMapper;
+import com.hieunn.chatappbe.repositories.ConversationRepository;
 import com.hieunn.chatappbe.repositories.MessageRepository;
 import com.hieunn.chatappbe.repositories.UserRepository;
 import com.hieunn.chatappbe.services.MessageService;
+import com.hieunn.chatappbe.utils.WebSocketUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -30,83 +36,83 @@ import java.util.stream.Collectors;
 public class MessageServiceImpl implements MessageService {
     MessageRepository messageRepository;
     UserRepository userRepository;
+    ConversationRepository conversationRepository;
+    WebSocketUtil webSocketUtil;
+    MessageMapper messageMapper;
 
     @Override
     @Transactional
-    public MessageDTO sendMessage(Long senderId, SendMessageRequest request) {
+    public void sendMessage(Long senderId, SendMessageRequest request) {
         User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new RuntimeException("Sender not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sender not found with id: " + senderId));
 
-        User receiver = userRepository.findById(request.getReceiverId())
-                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+        Conversation conversation = conversationRepository.findById(request.getConversationId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found with id: " + request.getConversationId()));
+
+        if (!conversation.getParticipants().contains(sender)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User is not a participant of this conversation");
+        }
 
         Message message = Message.builder()
                 .sender(sender)
-                .receiver(receiver)
+                .conversation(conversation)
                 .content(request.getContent())
                 .isRead(false)
                 .build();
 
         Message savedMessage = messageRepository.save(message);
-        return convertToDTO(savedMessage);
-    }
 
-    @Override
-    public List<MessageDTO> getConversation(Long user1Id, Long user2Id, int page, int size) {
-        if (user1Id.equals(user2Id)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Two user Ids are the same");
-        }
-        User user1 = userRepository.findById(user1Id)
-                .orElseThrow(() -> new RuntimeException("User 1 not found"));
-        User user2 = userRepository.findById(user2Id)
-                .orElseThrow(() -> new RuntimeException("User 2 not found"));
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Message> messages = messageRepository
-                .findBySenderAndReceiverOrReceiverAndSenderOrderByCreatedAtDesc(
-                        user1, user2, user1, user2, pageable);
-
-        List<MessageDTO> messageDTOs = messages.getContent().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-
-        Collections.reverse(messageDTOs);
-        return messageDTOs;
+        webSocketUtil.notifyUsers(
+                conversation
+                        .getParticipants()
+                        .stream()
+                        .map(User::getId)
+                        .collect(Collectors.toList()),
+                "/queue/messages",
+                messageMapper.toMessageDTO(savedMessage)
+        );
     }
 
     @Override
     @Transactional
-    public void markConversationAsRead(Long currentUserId, Long otherUserId) {
-        List<Message> unreadMessages = messageRepository.findBySender_IdAndReceiver_IdAndIsReadFalse(
-                otherUserId,
-                currentUserId
+    public void sendTypingStatus(Long senderId, TypingRequest request) {
+        Conversation conversation = conversationRepository.findById(request.getConversationId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found with id: " + request.getConversationId()));
+
+        TypingDTO dto = TypingDTO
+                .builder()
+                .isTyping(request.getIsTyping())
+                .conversationId(request.getConversationId())
+                .senderId(senderId)
+                .build();
+
+        webSocketUtil.notifyUsers(
+                conversation
+                        .getParticipants()
+                        .stream()
+                        .map(User::getId)
+                        .collect(Collectors.toList()),
+                "/queue/typing",
+                dto
         );
-
-        if (unreadMessages.isEmpty()) {
-            return;
-        }
-
-        unreadMessages.forEach(msg -> {
-            msg.setIsRead(true);
-            msg.setReadAt(LocalDateTime.now());
-        });
-
-        messageRepository.saveAll(unreadMessages);
     }
 
-    private MessageDTO convertToDTO(Message message) {
-        return MessageDTO.builder()
-                .id(message.getId())
-                .senderId(message.getSender().getId())
-                .senderUsername(message.getSender().getUsername())
-                .senderFullName(message.getSender().getFullName())
-                .receiverId(message.getReceiver().getId())
-                .receiverUsername(message.getReceiver().getUsername())
-                .receiverFullName(message.getReceiver().getFullName())
-                .content(message.getContent())
-                .isRead(message.getIsRead())
-                .createdAt(message.getCreatedAt())
-                .readAt(message.getReadAt())
-                .build();
+    @Override
+    public List<MessageDTO> findMessagesOfConversation(Long conversationId, int page, int size) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found with id: " + conversationId));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<Message> messages = messageRepository.findByConversation(conversation, pageable);
+
+        List<MessageDTO> messageDTOs = messages.getContent()
+                .stream()
+                .map(messageMapper::toMessageDTO)
+                .collect(Collectors.toList());
+
+        Collections.reverse(messageDTOs);
+
+        return messageDTOs;
     }
 }

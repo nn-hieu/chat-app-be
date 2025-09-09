@@ -1,6 +1,5 @@
 package com.hieunn.chatappbe.dtos.responses;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -16,11 +15,8 @@ public class MessageDTO {
     Long senderId;
     String senderUsername;
     String senderFullName;
-    Long receiverId;
-    String receiverUsername;
-    String receiverFullName;
+    Long conversationId;
     String content;
-    @JsonProperty("isRead")
     Boolean isRead;
     LocalDateTime createdAt;
     LocalDateTime readAt;

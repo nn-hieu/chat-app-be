@@ -1,6 +1,5 @@
 package com.hieunn.chatappbe.dtos.responses;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -11,7 +10,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TypingDTO {
     Long senderId;
-    Long receiverId;
-    @JsonProperty("isTyping")
+    Long conversationId;
     Boolean isTyping;
 }

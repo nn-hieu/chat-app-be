@@ -28,8 +28,8 @@ public class Message {
     User sender;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiver_id", nullable = false)
-    User receiver;
+    @JoinColumn(name = "conversation_id", nullable = false)
+    Conversation conversation;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     String content;
@@ -44,5 +44,5 @@ public class Message {
     LocalDateTime readAt;
 
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<Attachment> attachments = new ArrayList<>();;
+    List<Attachment> attachments = new ArrayList<>();
 }
