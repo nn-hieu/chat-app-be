@@ -24,4 +24,12 @@ public class WebSocketUtil {
             );
         }
     }
+
+    public void notifyUser(Long userId, String destination, Object payload) {
+        messagingTemplate.convertAndSendToUser(
+                userId.toString(),
+                destination,
+                payload
+        );
+    }
 }
