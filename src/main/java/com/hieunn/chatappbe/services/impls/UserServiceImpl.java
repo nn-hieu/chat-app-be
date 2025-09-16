@@ -3,17 +3,16 @@ package com.hieunn.chatappbe.services.impls;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.hieunn.chatappbe.dtos.requests.UserUpdateRequest;
-import com.hieunn.chatappbe.dtos.responses.FriendDTO;
+import com.hieunn.chatappbe.dtos.responses.FileDTO;
 import com.hieunn.chatappbe.dtos.responses.UserDTO;
 import com.hieunn.chatappbe.entities.FriendRequest;
-import com.hieunn.chatappbe.entities.Message;
 import com.hieunn.chatappbe.entities.User;
-import com.hieunn.chatappbe.entities.enums.FriendRequestStatus;
 import com.hieunn.chatappbe.mappers.UserMapper;
 import com.hieunn.chatappbe.repositories.FriendRequestRepository;
 import com.hieunn.chatappbe.repositories.MessageRepository;
 import com.hieunn.chatappbe.repositories.UserRepository;
 import com.hieunn.chatappbe.repositories.specifications.UserSpecifications;
+import com.hieunn.chatappbe.services.FileService;
 import com.hieunn.chatappbe.services.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +45,7 @@ public class UserServiceImpl implements UserService {
     UserMapper userMapper;
     MessageRepository messageRepository;
     Cloudinary cloudinary;
+    FileService fileService;
 
     @Override
     public UserDTO findById(Long id) {
@@ -149,37 +149,18 @@ public class UserServiceImpl implements UserService {
         String oldAvatarPublicId = user.getAvatarPublicId();
 
         if (avatar != null && !avatar.isEmpty()) {
-            if (avatar.getSize() > 5 * 1024 * 1024) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Avatar size must be less than 5MB");
-            }
-
-            try {
-                Map uploadResult = cloudinary
-                        .uploader()
-                        .upload(
-                                avatar.getBytes(),
-                                ObjectUtils.asMap("folder", "chat-app")
-                        );
-
-                String newAvatarUrl = (String) uploadResult.get("secure_url");
-                String newAvatarPublicId = (String) uploadResult.get("public_id");
-
-                user.setAvatarUrl(newAvatarUrl);
-                user.setAvatarPublicId(newAvatarPublicId);
-            } catch (IOException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not upload avatar");
-            }
+            FileDTO fileDTO = fileService.uploadFile(
+                    avatar,
+                    5 * 1024 * 1024L,
+                    "/users/" + userId
+            );
+            user.setAvatarPublicId(fileDTO.getPublicId());
+            user.setAvatarUrl(fileDTO.getUrl());
         }
 
         userRepository.save(user);
 
-        if (avatar != null && !avatar.isEmpty() && oldAvatarPublicId != null) {
-            try {
-                cloudinary.uploader().destroy(oldAvatarPublicId, ObjectUtils.emptyMap());
-            } catch (IOException e) {
-                log.error("Could not destroy old avatar", e);
-            }
-        }
+        fileService.deleteFile(oldAvatarPublicId);
 
         return userMapper.toUserDTO(user);
     }
