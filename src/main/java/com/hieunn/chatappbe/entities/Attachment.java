@@ -29,14 +29,14 @@ public class Attachment {
     String publicId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 12)
     FileType type;
 
     String originalFilename;
 
     Long size;
 
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 50)
     String format;
 
     @CreatedDate
