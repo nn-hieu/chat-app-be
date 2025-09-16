@@ -2,16 +2,21 @@ package com.hieunn.chatappbe.services.impls;
 
 import com.hieunn.chatappbe.dtos.requests.SendMessageRequest;
 import com.hieunn.chatappbe.dtos.requests.TypingRequest;
+import com.hieunn.chatappbe.dtos.responses.FileDTO;
 import com.hieunn.chatappbe.dtos.responses.MessageDTO;
 import com.hieunn.chatappbe.dtos.responses.TypingDTO;
+import com.hieunn.chatappbe.entities.Attachment;
 import com.hieunn.chatappbe.entities.Conversation;
 import com.hieunn.chatappbe.entities.Message;
 import com.hieunn.chatappbe.entities.User;
 import com.hieunn.chatappbe.mappers.MessageMapper;
+import com.hieunn.chatappbe.repositories.AttachmentRepository;
 import com.hieunn.chatappbe.repositories.ConversationRepository;
 import com.hieunn.chatappbe.repositories.MessageRepository;
 import com.hieunn.chatappbe.repositories.UserRepository;
+import com.hieunn.chatappbe.services.FileService;
 import com.hieunn.chatappbe.services.MessageService;
+import com.hieunn.chatappbe.utils.FileUtil;
 import com.hieunn.chatappbe.utils.WebSocketUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +28,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,10 +46,12 @@ public class MessageServiceImpl implements MessageService {
     ConversationRepository conversationRepository;
     WebSocketUtil webSocketUtil;
     MessageMapper messageMapper;
+    AttachmentRepository attachmentRepository;
+    FileService fileService;
 
     @Override
     @Transactional
-    public void sendMessage(Long senderId, SendMessageRequest request) {
+    public void sendMessage(Long senderId, SendMessageRequest request, List<MultipartFile> files) {
         User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sender not found with id: " + senderId));
 
@@ -60,7 +69,49 @@ public class MessageServiceImpl implements MessageService {
                 .isRead(false)
                 .build();
 
-        Message savedMessage = messageRepository.save(message);
+        if (files != null && !files.isEmpty()) {
+            if (files.size() > 3) {
+                webSocketUtil.notifyUser(
+                        senderId,
+                        "/queue/errors",
+                        "Cannot send more than 3 files"
+                );
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot send more than 3 files");
+            }
+            List<Attachment> attachments = new ArrayList<>();
+
+            List<FileDTO> fileDTOs;
+            try {
+                fileDTOs = fileService.uploadFiles(files, "/users/" + senderId);
+            } catch (ResponseStatusException e) {
+                webSocketUtil.notifyUser(
+                        senderId,
+                        "/queue/errors",
+                        "Cannot send empty file"
+                );
+                throw e;
+            }
+
+            for (FileDTO fileDTO : fileDTOs) {
+                Attachment attachment = Attachment.builder()
+                        .message(message)
+                        .url(fileDTO.getUrl())
+                        .publicId(fileDTO.getPublicId())
+                        .type(fileDTO.getType())
+                        .format(fileDTO.getFormat())
+                        .originalFilename(fileDTO.getName())
+                        .size(fileDTO.getSize())
+                        .build();
+
+                attachments.add(attachment);
+            }
+
+            message.setAttachments(attachments);
+
+            attachmentRepository.saveAll(attachments);
+        }
+
+        messageRepository.save(message);
 
         webSocketUtil.notifyUsers(
                 conversation
@@ -69,7 +120,7 @@ public class MessageServiceImpl implements MessageService {
                         .map(User::getId)
                         .collect(Collectors.toList()),
                 "/queue/messages",
-                messageMapper.toMessageDTO(savedMessage)
+                messageMapper.toMessageDTO(message)
         );
     }
 
