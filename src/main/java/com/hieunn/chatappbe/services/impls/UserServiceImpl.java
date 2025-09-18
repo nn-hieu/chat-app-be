@@ -1,7 +1,5 @@
 package com.hieunn.chatappbe.services.impls;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import com.hieunn.chatappbe.dtos.requests.UserUpdateRequest;
 import com.hieunn.chatappbe.dtos.responses.FileDTO;
 import com.hieunn.chatappbe.dtos.responses.UserDTO;
@@ -9,7 +7,6 @@ import com.hieunn.chatappbe.entities.FriendRequest;
 import com.hieunn.chatappbe.entities.User;
 import com.hieunn.chatappbe.mappers.UserMapper;
 import com.hieunn.chatappbe.repositories.FriendRequestRepository;
-import com.hieunn.chatappbe.repositories.MessageRepository;
 import com.hieunn.chatappbe.repositories.UserRepository;
 import com.hieunn.chatappbe.repositories.specifications.UserSpecifications;
 import com.hieunn.chatappbe.services.FileService;
@@ -30,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,8 +39,6 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
     FriendRequestRepository friendRequestRepository;
     UserMapper userMapper;
-    MessageRepository messageRepository;
-    Cloudinary cloudinary;
     FileService fileService;
 
     @Override
