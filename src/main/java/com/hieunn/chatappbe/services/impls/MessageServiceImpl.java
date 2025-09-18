@@ -48,6 +48,7 @@ public class MessageServiceImpl implements MessageService {
     MessageMapper messageMapper;
     AttachmentRepository attachmentRepository;
     FileService fileService;
+    FileUtil fileUtil;
 
     @Override
     @Transactional
@@ -80,17 +81,11 @@ public class MessageServiceImpl implements MessageService {
             }
             List<Attachment> attachments = new ArrayList<>();
 
-            List<FileDTO> fileDTOs;
-            try {
-                fileDTOs = fileService.uploadFiles(files, "/users/" + senderId);
-            } catch (ResponseStatusException e) {
-                webSocketUtil.notifyUser(
-                        senderId,
-                        "/queue/errors",
-                        "Cannot send empty file"
-                );
-                throw e;
+            List<MultipartFile> validFiles = fileUtil.getValidFiles(files);
+            if (validFiles.isEmpty() && request.getContent().isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Content cannot be empty");
             }
+            List<FileDTO> fileDTOs = fileService.uploadFiles(validFiles, "/users/" + senderId);
 
             for (FileDTO fileDTO : fileDTOs) {
                 Attachment attachment = Attachment.builder()
